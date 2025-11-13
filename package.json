@@ -1,14 +1,16 @@
 {
   "name": "tetra-shop-advanced",
-  "version": "2.0.0",
-  "description": "پنل مدیریت تترا شاپ با رابط کاربری پیشرفته",
+  "version": "2.1.0",
+  "description": "پنل مدیریت تترا شاپ با سیستم تبدیل 2D به 3D",
   "main": "server/quantum-tetra-server.js",
   "scripts": {
     "start": "node server/quantum-tetra-server.js",
     "dev": "node server/quantum-tetra-server.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "multer": "^1.4.4",
+    "sharp": "^0.32.6"
   }
 }
