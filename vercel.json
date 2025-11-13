@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/quantum-tetra-server.js",
+      "src": "server/simple-server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "server/quantum-tetra-server.js"
+      "dest": "server/simple-server.js"
     }
   ]
 }
