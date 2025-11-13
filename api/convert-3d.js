@@ -1,5 +1,4 @@
-module.exports = async (req, res) => {
-  // فقط برای POST requests
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -7,7 +6,7 @@ module.exports = async (req, res) => {
   try {
     const { imageData, format = 'obj' } = req.body;
     
-    // شبیه‌سازی پردازش سریع
+    // شبیه‌سازی پردازش
     await new Promise(resolve => setTimeout(resolve, 100));
     
     const result = {
@@ -16,21 +15,18 @@ module.exports = async (req, res) => {
       data: {
         modelId: 'model_' + Date.now(),
         vertexCount: Math.floor(Math.random() * 1000) + 500,
-        faceCount: Math.floor(Math.random() * 1500) + 800,
+        faceCount: Math.floor(Math.random() * 1500) + 800, 
         processingTime: '۰.۵ ثانیه',
-        format: format,
-        downloadUrl: '/api/download?file=model.obj'
-      },
-      timestamp: new Date().toLocaleString('fa-IR')
+        format: format
+      }
     };
     
-    res.json(result);
+    res.status(200).json(result);
     
   } catch (error) {
-    console.error('خطا در تبدیل 3D:', error);
     res.status(500).json({
       success: false,
       message: 'خطا در پردازش درخواست'
     });
   }
-};
+}

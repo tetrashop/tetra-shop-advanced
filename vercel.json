@@ -2,12 +2,8 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.js",
+      "src": "api/*.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build"
     }
   ],
   "routes": [
@@ -16,7 +12,7 @@
       "dest": "/api/health.js"
     },
     {
-      "src": "/api/status",
+      "src": "/api/status", 
       "dest": "/api/status.js"
     },
     {
@@ -31,10 +27,5 @@
       "src": "/(.*)",
       "dest": "/api/status.js"
     }
-  ],
-  "functions": {
-    "api/**/*.js": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
