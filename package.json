@@ -1,13 +1,11 @@
 {
   "name": "tetra-shop-advanced",
-  "version": "2.2.0",
-  "description": "سیستم تبدیل 2D به 3D تترا شاپ",
+  "version": "3.0.0",
   "main": "server/quantum-tetra-server.js",
   "scripts": {
     "start": "node server/quantum-tetra-server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "express": "^4.18.2"
   }
 }
