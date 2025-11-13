@@ -1,10 +1,12 @@
 {
   "name": "tetra-shop-advanced",
-  "version": "4.1.0", 
-  "description": "سرور تترا شاپ - ساختار صحیح Vercel",
-  "type": "module",
+  "version": "1.0.0",
+  "description": "تترا شاپ - اکوسیستم کوانتومی پیشرفته",
+  "main": "server.js",
   "scripts": {
-    "dev": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "vercel-build": "echo 'No build required for Vercel'"
   },
   "dependencies": {
     "express": "^4.18.2"
