@@ -5,11 +5,17 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js",
     "vercel-build": "echo 'No build required for Vercel'"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "jimp": "^0.16.13",
+    "pngjs": "^6.0.0",
+    "ocrad.js": "^1.0.0",
+    "tesseract.js": "^4.0.2",
+    "jsonwebtoken": "^9.0.0",
+    "bcryptjs": "^2.4.3",
+    "sql.js": "^1.8.0"
   },
   "engines": {
     "node": ">=18.x"

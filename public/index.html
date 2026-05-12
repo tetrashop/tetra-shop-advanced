@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تترا شاپ</title>
+  <style>
+    body { font-family: Tahoma; background: #0a0f1e; color: #eee; margin: 20px; }
+    .container { max-width: 900px; margin: auto; }
+    h1 { color: #00e5ff; }
+    .section { background: #151b2e; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+    input, select { width: 100%; padding: 10px; margin: 5px 0; background: #1e2746; border: 1px solid #304; color: white; border-radius: 6px; }
+    button { background: #0066cc; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #0080ff; }
+    pre { background: #0d1225; padding: 15px; border-radius: 8px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🚀 تترا شاپ</h1>
+
+  <div class="section">
+    <h3>🔐 حساب کاربری</h3>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <div style="flex:1;"><input id="regUser" placeholder="نام کاربری"><input id="regPass" type="password" placeholder="رمز"><button onclick="register()">ثبت‌نام</button></div>
+      <div style="flex:1;"><input id="loginUser" placeholder="نام کاربری"><input id="loginPass" type="password" placeholder="رمز"><button onclick="login()">ورود</button></div>
+    </div>
+    <div id="userInfo" class="hidden"><p id="userDisplay"></p><button onclick="logout()">خروج</button></div>
+  </div>
+
+  <div class="section">
+    <h3>🧊 تبدیل عکس به 3D</h3>
+    <input type="file" id="image3D" accept="image/*">
+    <select id="format3D"><option value="obj">OBJ</option><option value="stl">STL</option></select>
+    <label><input type="checkbox" id="edge3D"> تشخیص لبه</label>
+    <button onclick="convert3D()">تبدیل</button>
+    <div id="result3D"></div>
+  </div>
+
+  <div class="section">
+    <h3>🔍 OCR متن انگلیسی</h3>
+    <input type="file" id="imageOCR" accept="image/*">
+    <button onclick="ocr()">استخراج</button>
+    <pre id="resultOCR"></pre>
+  </div>
+
+  <div class="section">
+    <h3>✍️ نویسنده هوشمند</h3>
+    <select id="writerType"><option value="product">محصول</option><option value="blog">مقاله</option><option value="social">شبکه اجتماعی</option></select>
+    <input id="writerProduct" placeholder="نام محصول"><input id="writerPrice" placeholder="قیمت">
+    <button onclick="generateText()">تولید</button>
+    <div id="writerResult" style="margin-top:10px; background:#0d1225; padding:10px; border-radius:6px;"></div>
+  </div>
+</div>
+
+<script>
+let token = localStorage.getItem('token');
+if (token) {
+  document.getElementById('userInfo').classList.remove('hidden');
+  fetch('/api/users/me', { headers: { Authorization: 'Bearer '+token } })
+    .then(r=>r.json()).then(d=>{ if(d.success) document.getElementById('userDisplay').innerText = '👤 '+d.user.username; });
+}
+
+async function register() {
+  const u=document.getElementById('regUser').value, p=document.getElementById('regPass').value;
+  const res=await fetch('/api/users/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})}).then(r=>r.json());
+  alert(res.message);
+}
+
+async function login() {
+  const u=document.getElementById('loginUser').value, p=document.getElementById('loginPass').value;
+  const res=await fetch('/api/users/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})}).then(r=>r.json());
+  if (res.token) {
+    localStorage.setItem('token', res.token);
+    token = res.token;
+    document.getElementById('userInfo').classList.remove('hidden');
+    document.getElementById('userDisplay').innerText = '👤 '+res.user.username;
+    alert('ورود موفق');
+  } else alert(res.message);
+}
+
+function logout() { localStorage.removeItem('token'); token=null; document.getElementById('userInfo').classList.add('hidden'); }
+
+function toBase64(file) { return new Promise((resolve, reject) => { const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file); }); }
+
+async function convert3D() {
+  const file=document.getElementById('image3D').files[0];
+  if(!file) return alert('فایل انتخاب کنید');
+  const base64=await toBase64(file);
+  const format=document.getElementById('format3D').value;
+  const useEdge=document.getElementById('edge3D').checked;
+  const res=await fetch('/api/convert-3d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageData:base64,format,useEdge})}).then(r=>r.json());
+  document.getElementById('result3D').innerHTML = res.success ? `<p>✅ <a href="${res.data.downloadUrl}" target="_blank">دانلود مدل ${res.data.format}</a></p>` : `<p style="color:red">خطا</p>`;
+}
+
+async function ocr() {
+  const file=document.getElementById('imageOCR').files[0];
+  if(!file) return alert('فایل انتخاب کنید');
+  const base64=await toBase64(file);
+  const res=await fetch('/api/ocr',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageData:base64})}).then(r=>r.json());
+  document.getElementById('resultOCR').textContent = res.success ? res.data.text : 'خطا: '+res.message;
+}
+
+async function generateText() {
+  const type=document.getElementById('writerType').value;
+  const product=document.getElementById('writerProduct').value;
+  const price=document.getElementById('writerPrice').value;
+  const params={}; if(product) params.product=product; if(price) params.price=price;
+  const res=await fetch('/api/writer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,params})}).then(r=>r.json());
+  document.getElementById('writerResult').innerText = res.success ? res.data.content : 'خطا';
+}
+</script>
+</body>
+</html>

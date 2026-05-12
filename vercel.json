@@ -2,30 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "*.js",
+      "src": "server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/health",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/api/status",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/api/convert-3d",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/api/download",
-      "dest": "/server.js"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/server.js"
+      "dest": "server.js"
     }
   ]
 }

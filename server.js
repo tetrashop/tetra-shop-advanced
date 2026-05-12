@@ -1,211 +1,115 @@
 const express = require('express');
 const app = express();
+const { imageToObj, imageToObjEdge, imageToStl, imageToStlEdge } = require('./converter');
+const { performOCR, performOCROffline } = require('./ocr');
+const { generateText } = require('./writer');
+const { createUser, findUser } = require('./database');
+const { generateToken, authMiddleware } = require('./auth');
+const bcrypt = require('bcryptjs');
+const path = require('path');
 
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// روت اصلی
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: '🚀 تترا شاپ - اکوسیستم کوانتومی فعال است',
-    version: '1.0.0',
-    timestamp: new Date().toLocaleString('fa-IR'),
-    endpoints: {
-      health: '/api/health',
-      status: '/api/status',
-      convert3d: '/api/convert-3d',
-      download: '/api/download'
-    }
-  });
-});
+const modelCache = new Map();
 
-// API سلامت
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    message: '✅ سرور تترا شاپ فعال و سالم است',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
-});
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-// API وضعیت
-app.get('/api/status', (req, res) => {
-  res.json({
-    success: true,
-    status: 'active',
-    service: 'تترا شاپ - اکوسیستم کوانتومی',
-    version: '1.0.0',
-    features: [
-      'تبدیل پیشرفته 2D به 3D',
-      'پردازش OCR کوانتومی', 
-      'نویسنده هوشمند',
-      'محاسبات ابری'
-    ],
-    environment: process.env.NODE_ENV || 'production'
-  });
-});
+app.get('/api/health', (req, res) => res.json({ status: 'healthy' }));
 
-// API تبدیل 2D به 3D
-app.post('/api/convert-3d', async (req, res) => {
+app.post('/api/users/register', async (req, res, next) => {
   try {
-    console.log('🔮 دریافت درخواست تبدیل 2D به 3D');
-    
-    const { imageData, format = 'obj', options = {} } = req.body;
-    
-    // شبیه‌سازی پردازش کوانتومی
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const result = {
-      success: true,
-      message: 'تبدیل کوانتومی 2D به 3D با موفقیت انجام شد',
-      data: {
-        modelId: 'tetra_3d_' + Date.now(),
-        vertexCount: Math.floor(Math.random() * 5000) + 2000,
-        faceCount: Math.floor(Math.random() * 8000) + 4000,
-        processingTime: '۱.۲ ثانیه',
-        format: format,
-        quality: 'high',
-        boundingBox: {
-          width: (Math.random() * 10 + 5).toFixed(2),
-          height: (Math.random() * 8 + 4).toFixed(2), 
-          depth: (Math.random() * 6 + 2).toFixed(2)
-        },
-        downloadUrl: `/api/download?model=tetra_3d_model.${format}`,
-        quantumMetrics: {
-          processingScore: (Math.random() * 20 + 80).toFixed(1),
-          accuracy: (Math.random() * 10 + 90).toFixed(1),
-          efficiency: (Math.random() * 15 + 85).toFixed(1)
-        }
-      },
-      timestamp: new Date().toLocaleString('fa-IR')
-    };
-    
-    res.json(result);
-    
-  } catch (error) {
-    console.error('❌ خطا در تبدیل 3D:', error);
-    res.status(500).json({
-      success: false,
-      message: 'خطا در پردازش کوانتومی تصویر'
-    });
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ success: false, message: 'نام کاربری و رمز الزامی است' });
+    const hashed = await bcrypt.hash(password, 10);
+    const result = await createUser(username, hashed);
+    if (!result.success) return res.status(409).json({ success: false, message: result.message });
+    res.status(201).json({ success: true, message: 'ثبت‌نام موفق' });
+  } catch (err) { next(err); }
+});
+
+app.post('/api/users/login', async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ success: false, message: 'نام کاربری و رمز الزامی است' });
+    const user = await findUser(username);
+    if (!user) return res.status(401).json({ success: false, message: 'کاربر یافت نشد' });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ success: false, message: 'رمز اشتباه است' });
+    const token = generateToken(user);
+    res.json({ success: true, token, user: { id: user.id, username: user.username } });
+  } catch (err) { next(err); }
+});
+
+app.get('/api/users/me', authMiddleware, (req, res) => res.json({ success: true, user: req.user }));
+
+app.post('/api/convert-3d', async (req, res, next) => {
+  try {
+    let { imageData, format = 'obj', useEdge = false } = req.body;
+    if (!imageData || typeof imageData !== 'string') return res.status(400).json({ success: false, message: 'imageData الزامی' });
+    const matches = imageData.match(/^data:image\/(png|jpeg|jpg);base64,(.+)$/);
+    if (!matches) return res.status(400).json({ success: false, message: 'فرمت تصویر نامعتبر' });
+    const imageBuffer = Buffer.from(matches[2], 'base64');
+    let content;
+    if (format === 'stl') content = useEdge ? await imageToStlEdge(imageBuffer, 256) : await imageToStl(imageBuffer, 256);
+    else { content = useEdge ? await imageToObjEdge(imageBuffer, 256) : await imageToObj(imageBuffer, 256); format = 'obj'; }
+    const modelId = `model_${Date.now()}.${format}`;
+    modelCache.set(modelId, content);
+    res.json({ success: true, data: { modelId, downloadUrl: `/api/download?model=${encodeURIComponent(modelId)}`, format, usedEdge: useEdge } });
+  } catch (err) { next(err); }
+});
+
+app.post('/api/ocr', async (req, res, next) => {
+  try {
+    const { imageData, lang = 'eng' } = req.body;
+    if (!imageData) return res.status(400).json({ success: false, message: 'imageData الزامی' });
+    const matches = imageData.match(/^data:image\/(png|jpeg|jpg);base64,(.+)$/);
+    if (!matches) return res.status(400).json({ success: false, message: 'فرمت تصویر نامعتبر' });
+    const imageBuffer = Buffer.from(matches[2], 'base64');
+
+    let text;
+    try {
+      // تلاش با Tesseract (روی Vercel جواب می‌دهد)
+      text = await performOCR(imageBuffer, lang);
+    } catch (tesseractErr) {
+      console.warn('Tesseract failed, fallback to offline OCR:', tesseractErr.message);
+      // Fallback به OCR آفلاین (سریع روی لوکال)
+      text = await performOCROffline(imageBuffer);
+    }
+
+    res.json({ success: true, data: { text, lang } });
+  } catch (err) {
+    console.error('OCR Error:', err.message);
+    res.status(500).json({ success: false, message: 'خطا در پردازش OCR' });
   }
 });
 
-// API دانلود
-app.get('/api/download', (req, res) => {
-  const model = req.query.model || 'tetra_model.obj';
-  const format = model.split('.').pop();
-  
-  let content = '';
-  let contentType = 'text/plain';
-  
-  switch(format) {
-    case 'obj':
-      content = `# مدل 3D تولید شده توسط تترا شاپ
-# مدل کوانتومی - ${new Date().toLocaleString('fa-IR')}
-v 0.000000 0.000000 0.000000
-v 1.000000 0.000000 0.000000
-v 0.000000 1.000000 0.000000  
-v 0.000000 0.000000 1.000000
-v 0.500000 0.500000 0.500000
+app.post('/api/writer', async (req, res, next) => {
+  try {
+    const { type = 'product', params = {} } = req.body;
+    if (!['product', 'blog', 'social'].includes(type)) return res.status(400).json({ success: false, message: 'نوع نامعتبر' });
+    const content = await generateText(type, params);
+    res.json({ success: true, data: { type, content } });
+  } catch (err) { next(err); }
+});
 
-f 1 2 3
-f 1 3 4
-f 1 4 2
-f 2 4 5
-f 3 4 5`;
-      contentType = 'model/obj';
-      break;
-      
-    case 'stl':
-      content = `solid tetra_3d_model
-facet normal 0 0 0
-  outer loop
-    vertex 0 0 0
-    vertex 1 0 0  
-    vertex 0 1 0
-  endloop
-endfacet
-endsolid tetra_3d_model`;
-      contentType = 'model/stl';
-      break;
-      
-    default:
-      content = `مدل 3D تترا شاپ - فرمت: ${format}`;
-  }
-  
-  res.setHeader('Content-Type', contentType);
-  res.setHeader('Content-Disposition', `attachment; filename="${model}"`);
+app.get('/api/download', (req, res) => {
+  const modelId = req.query.model;
+  if (!modelId || !modelCache.has(modelId)) return res.status(404).json({ success: false, message: 'فایل یافت نشد' });
+  const content = modelCache.get(modelId);
+  modelCache.delete(modelId);
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.setHeader('Content-Disposition', `attachment; filename="${modelId}"`);
   res.send(content);
 });
 
-// API خدمات دیگر
-app.get('/api/services', (req, res) => {
-  res.json({
-    success: true,
-    services: [
-      {
-        name: 'تبدیل 2D به 3D',
-        endpoint: '/api/convert-3d',
-        method: 'POST',
-        status: 'active'
-      },
-      {
-        name: 'پردازش OCR کوانتومی', 
-        endpoint: '/api/ocr',
-        method: 'POST',
-        status: 'coming_soon'
-      },
-      {
-        name: 'نویسنده هوشمند',
-        endpoint: '/api/writer',
-        method: 'POST', 
-        status: 'coming_soon'
-      }
-    ]
-  });
-});
-
-// هندل خطاهای 404
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'مسیر مورد نظر یافت نشد',
-    path: req.originalUrl,
-    availableEndpoints: [
-      'GET  /',
-      'GET  /api/health', 
-      'GET  /api/status',
-      'POST /api/convert-3d',
-      'GET  /api/download',
-      'GET  /api/services'
-    ]
-  });
-});
-
-// هندلر خطای全局
-app.use((error, req, res, next) => {
-  console.error('🚨 خطای سرور:', error);
-  res.status(500).json({
-    success: false,
-    message: 'خطای داخلی سرور',
-    error: error.message
-  });
+app.use((req, res) => res.status(404).json({ success: false, message: 'مسیر یافت نشد' }));
+app.use((err, req, res, next) => {
+  console.error('🚨 خطای سرور:', err.stack);
+  res.status(500).json({ success: false, message: 'خطای داخلی سرور' });
 });
 
 const PORT = process.env.PORT || 3000;
-
-// راه‌اندازی سرور
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log('🎉 ==========================================');
-    console.log('🚀 تترا شاپ - اکوسیستم کوانتومی فعال شد!');
-    console.log('🌐 آدرس: http://localhost:' + PORT);
-    console.log('⏰ زمان: ' + new Date().toLocaleString('fa-IR'));
-    console.log('🎉 ==========================================');
-  });
-}
-
+if (require.main === module) app.listen(PORT, () => console.log(`🎉 تترا شاپ پایدار روی http://localhost:${PORT}`));
 module.exports = app;
