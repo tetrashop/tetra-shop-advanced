@@ -2,9 +2,9 @@
 
 <div align="center">
 
-![Project Type](https://img.shields.io/badge/Type-E-commerce / Marketplace-blue)
-![Status](https://img.shields.io/badge/status-active-success)
+![Type](https://img.shields.io/badge/Type-nodejs-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/status-active-success)
 
 **بخشی از اکوسیستم TetraShop**
 
@@ -12,42 +12,12 @@
 
 ---
 
-## 📋 چکیده
+## 📋 درباره پروژه
 
-یک پلتفرم تجارت الکترونیک کامل با قابلیت مدیریت محصولات، پرداخت آنلاین، و تحلیل رفتار مشتریان. این پروژه با معماری میکروسرویس و امنیت بالا توسعه یافته است.
+این پروژه با هدف ارائه یک راه‌حل کارآمد در حوزه **nodejs** توسعه یافته است.
 
-### 🎯 اهداف پروژه
-
-- ✅ ارائه یک راه‌حل کارآمد در حوزه **E-commerce / Marketplace**
-- ✅ پیاده‌سازی با استفاده از بهترین روش‌های مهندسی نرم‌افزار
-- ✅ ایجاد کد تمیز، ماژولار و قابل نگهداری
-- ✅ مستندسازی کامل برای سهولت استفاده و مشارکت
-
----
-
-## 🏗️ معماری پروژه
-
-### ساختار کلی
-
-```
-tetra-shop-advanced/
-├── src/           # کدهای منبع اصلی
-│   ├── core/      # ماژول‌های اصلی
-│   ├── utils/     # توابع کمکی
-│   └── config/    # تنظیمات
-├── tests/         # تست‌های واحد و یکپارچه
-├── docs/          # مستندات فنی
-├── scripts/       # اسکریپت‌های ابزار
-├── README.md      # مستندات پروژه
-├── LICENSE        # مجوز
-└── .gitignore     # فایل‌های نادیده‌گرفته
-```
-
-### الگوی طراحی
-
-- **معماری:** لایه‌ای (Layered Architecture)
-- **الگوی اصلی:** MVC / Microservices
-- **مدیریت وابستگی:** Dependency Injection
+- **تعداد فایل‌ها:** 19
+- **وضعیت:** فعال و پایدار
 
 ---
 
@@ -55,90 +25,93 @@ tetra-shop-advanced/
 
 ### پیش‌نیازها
 
-- - محیط توسعه مناسب\n- Git
+- Node.js 16+\n- npm 7+
 
 ### نصب
 
 ```bash
-# کلون مخزن
 git clone https://github.com/tetrashop/tetra-shop-advanced.git
 cd tetra-shop-advanced
-
-# نصب وابستگی‌ها
-# دستورات نصب بستگی به نوع پروژه دارد
-
-# اجرای پروژه
-# دستور اجرا بستگی به نوع پروژه دارد
+npm install
 ```
 
----
-
-## 📖 راهنمای استفاده
-
-### شروع سریع
+### اجرا
 
 ```bash
-# کد نمونه برای شروع کار
+npm start
 ```
 
 ---
 
-## 🧪 تست
+## 🌐 دیپلوی
 
-```bash
-# اجرای تست‌ها
-# دستور تست بستگی به نوع پروژه دارد
-```
+- **URL:** [  🚀 دیپلوی tetra-shop-advanced روی Vercel...
+    ❌ دیپلوی ناموفق!
+error: "/data/data/com.termux/files/usr/lib/node_modules/vercel/dist/get-latest-worker.cjs" has bad ELF magic: 2f2a2a0a
+Vercel CLI 58.5.1 (Node.js 26.4.0)
 
----
+  Directory       ~/github/tetra-shop-advanced
 
-## 🐛 مشکلات شناخته‌شده و راه‌حل‌ها
+Loading teams…
+  Team            ramin-edjlal-s-projects
+Searching for existing projects…
 
-### مشکل ۱: خطای نصب وابستگی‌ها
-**راه‌حل:** 
-```bash
-# پاک کردن کش و نصب مجدد
-# پاک کردن کش و نصب مجدد
-```
+✓ Linked          ramin-edjlal-s-projects/tetra-shop-advanced
 
-### مشکل ۲: خطای حافظه
-**راه‌حل:** افزایش حافظه اختصاص‌یافته یا استفاده از swap.
+Retrieving project…
+> Downloading `development` environment variables for ramin-edjlal-s-projects/tetra-shop-advanced
+Downloading
 
----
+✓ Created         .env.local file and added it to .gitignore
+Deploying ramin-edjlal-s-projects/tetra-shop-advanced
+Uploading [--------------------] (0.0B/310.1KB)
+Uploading [=====---------------] (93.0KB/310.1KB)
+Uploading [==========----------] (159.2KB/310.1KB)
+Uploading [===============-----] (239.2KB/310.1KB)
+Uploading [====================] (310.1KB/310.1KB)
+Error: Resource is limited - try again in 24 hours (more than 100, code: "api-deployments-free-per-day").](  🚀 دیپلوی tetra-shop-advanced روی Vercel...
+    ❌ دیپلوی ناموفق!
+error: "/data/data/com.termux/files/usr/lib/node_modules/vercel/dist/get-latest-worker.cjs" has bad ELF magic: 2f2a2a0a
+Vercel CLI 58.5.1 (Node.js 26.4.0)
 
-## 🤝 مشارکت در توسعه
+  Directory       ~/github/tetra-shop-advanced
 
-1. **Fork** کردن مخزن
-2. ایجاد **Branch** جدید: `git checkout -b feature/your-feature`
-3. **Commit** تغییرات: `git commit -m 'Add amazing feature'`
-4. **Push** به Branch: `git push origin feature/your-feature`
-5. باز کردن **Pull Request**
+Loading teams…
+  Team            ramin-edjlal-s-projects
+Searching for existing projects…
 
-### قوانین مشارکت
+✓ Linked          ramin-edjlal-s-projects/tetra-shop-advanced
 
-- ✅ رعایت استانداردهای کدنویسی
-- ✅ نوشتن تست برای کدهای جدید
-- ✅ به‌روزرسانی مستندات
-- ✅ استفاده از Conventional Commits
+Retrieving project…
+> Downloading `development` environment variables for ramin-edjlal-s-projects/tetra-shop-advanced
+Downloading
+
+✓ Created         .env.local file and added it to .gitignore
+Deploying ramin-edjlal-s-projects/tetra-shop-advanced
+Uploading [--------------------] (0.0B/310.1KB)
+Uploading [=====---------------] (93.0KB/310.1KB)
+Uploading [==========----------] (159.2KB/310.1KB)
+Uploading [===============-----] (239.2KB/310.1KB)
+Uploading [====================] (310.1KB/310.1KB)
+Error: Resource is limited - try again in 24 hours (more than 100, code: "api-deployments-free-per-day").)
+- **وضعیت:** ✅ فعال
+- **آخرین به‌روزرسانی:** 2026-08-15 19:37
 
 ---
 
 ## 📝 مجوز
 
-این پروژه تحت مجوز **MIT License** منتشر شده است.
+MIT License
 
 ---
 
-## 🌐 ارتباط با تیم
+## 🌐 ارتباط با ما
 
 - **وبسایت:** [tetrashop.ir](https://tetrashop.ir)
 - **گیت‌هاب:** [github.com/tetrashop](https://github.com/tetrashop)
-- **ایمیل:** info@tetrashop.ir
 
 ---
 
 <div align="center">
   <sub>ساخته شده با ❤️ توسط تیم TetraShop</sub>
-  <br>
-  <sub>آخرین به‌روزرسانی: 2026-08-13 17:32</sub>
 </div>
